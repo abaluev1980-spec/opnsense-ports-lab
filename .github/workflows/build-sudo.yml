@@ -1,0 +1,39 @@
+name: Build - sudo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-sudo:
+    runs-on: ubuntu-latest
+    name: Build sudo port inside OPNsense VM
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run OPNsense VM and build sudo
+        uses: vmactions/opnsense-vm@v1
+        with:
+          debug-on-error: true
+          sync: nfs
+          prepare: |
+            pkg install -y git
+          run: |
+            set -e
+            echo ">>> Клонируем официальные инструменты сборки OPNsense"
+            cd /usr
+            git clone https://github.com/opnsense/tools
+            
+            echo ">>> Обновляем дерево портов"
+            cd tools
+            make update
+            
+            echo ">>> Собираем порт security/sudo"
+            make ports PORTSLIST="security/sudo"
+
+      - name: Upload built sudo package
+        uses: actions/upload-artifact@v4
+        with:
+          name: opnsense-sudo-package
+          path: /usr/tools/sets/
