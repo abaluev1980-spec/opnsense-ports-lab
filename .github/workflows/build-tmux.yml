@@ -1,0 +1,39 @@
+name: Build - tmux
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-tmux:
+    runs-on: ubuntu-latest
+    name: Build tmux port inside OPNsense VM
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run OPNsense VM and build tmux
+        uses: vmactions/opnsense-vm@v1
+        with:
+          debug-on-error: true
+          sync: nfs
+          prepare: |
+            pkg install -y git
+          run: |
+            set -e
+            echo ">>> Клонируем официальные инструменты сборки OPNsense"
+            cd /usr
+            git clone https://github.com/opnsense/tools
+            
+            echo ">>> Обновляем дерево портов"
+            cd tools
+            make update
+            
+            echo ">>> Собираем порт sysutils/tmux"
+            make ports PORTSLIST="sysutils/tmux"
+
+      - name: Upload built tmux package
+        uses: actions/upload-artifact@v4
+        with:
+          name: opnsense-tmux-package
+          path: /usr/tools/sets/
