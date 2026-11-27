@@ -32,8 +32,23 @@ jobs:
             echo ">>> Собираем порт sysutils/tmux"
             make ports PORTSLIST="sysutils/tmux"
 
+            echo ">>> Ищем собранные пакеты по всей системе"
+            mkdir -p /tmp/artifacts
+            # Ищем все .pkg в /usr и копируем в /tmp/artifacts
+            find /usr -name "*.pkg" -exec cp {} /tmp/artifacts/ \;
+            
+            echo ">>> Содержимое /tmp/artifacts:"
+            ls -lh /tmp/artifacts/
+            
+            # Если файлов нет, принудительно завершаем с ошибкой
+            if [ -z "$(ls -A /tmp/artifacts/)" ]; then
+              echo "ОШИБКА: Не найдено ни одного .pkg файла!"
+              exit 1
+            fi
+
       - name: Upload built tmux package
         uses: actions/upload-artifact@v4
         with:
           name: opnsense-tmux-package
-          path: /usr/tools/sets/
+          path: /tmp/artifacts/*.pkg
+          if-no-files-found: error
