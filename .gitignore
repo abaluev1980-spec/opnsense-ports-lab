@@ -1,29 +1,17 @@
-cd ~/opnsense-ports-lab
-cat > .gitattributes <<'EOF'
-* text=auto eol=lf
-*.yml   text eol=lf
-*.yaml  text eol=lf
-*.sh    text eol=lf
-*.md    text eol=lf
-*.pkg   binary
-*.tar.gz binary
-EOF
-
-cat > .gitignore <<'EOF'
+# артефакты сборки
 dist/
 sets/
 lab/
 lab-check/
 sudo/
 tmux/
+
+# скачанные из Actions
 opnsense-*.tar.gz
 opnsense-*.tar.gz.sha256
 *.pkg
+
+# временные файлы
 *.tmp
 *.log
 .DS_Store
-EOF
-
-git add .gitattributes .gitignore
-git commit -m "Add .gitattributes and .gitignore"
-git push
