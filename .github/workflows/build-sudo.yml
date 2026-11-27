@@ -21,25 +21,20 @@ jobs:
             pkg install -y git
           run: |
             set -e
-            echo ">>> Клонируем официальные инструменты сборки OPNsense"
             cd /usr
             git clone https://github.com/opnsense/tools
-            
-            echo ">>> Обновляем дерево портов"
             cd tools
             make update
-            
-            echo ">>> Собираем порт security/sudo"
             make ports PORTSLIST="security/sudo"
 
-            echo ">>> Ищем собранные пакеты по всей системе"
-            mkdir -p /tmp/artifacts
-            find /usr -name "*.pkg" -exec cp {} /tmp/artifacts/ \;
+            echo ">>> Ищем собранные пакеты и копируем в синхронизированную папку dist/"
+            mkdir -p dist
+            find /usr -name "*.pkg" -exec cp {} dist/ \;
             
-            echo ">>> Содержимое /tmp/artifacts:"
-            ls -lh /tmp/artifacts/
+            echo ">>> Содержимое dist:"
+            ls -lh dist/
             
-            if [ -z "$(ls -A /tmp/artifacts/)" ]; then
+            if [ -z "$(ls -A dist/)" ]; then
               echo "ОШИБКА: Не найдено ни одного .pkg файла!"
               exit 1
             fi
@@ -48,5 +43,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: opnsense-sudo-package
-          path: /tmp/artifacts/*.pkg
+          path: dist/*.pkg
           if-no-files-found: error
