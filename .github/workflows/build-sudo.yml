@@ -16,25 +16,25 @@ jobs:
         uses: vmactions/opnsense-vm@v1
         with:
           debug-on-error: true
-          sync: nfs
+          sync: rsync
+          copyback: true
           prepare: |
             pkg install -y git
           run: |
             set -e
+            WORKSPACE=$(pwd)
             cd /usr
             git clone https://github.com/opnsense/tools
             cd tools
             make update
             make ports PORTSLIST="security/sudo"
 
-            echo ">>> Ищем собранные пакеты и копируем в синхронизированную папку dist/"
-            mkdir -p dist
-            find /usr -name "*.pkg" -exec cp {} dist/ \;
-            
-            echo ">>> Содержимое dist:"
-            ls -lh dist/
-            
-            if [ -z "$(ls -A dist/)" ]; then
+            echo ">>> Копируем .pkg в рабочую директорию для синхронизации"
+            mkdir -p "$WORKSPACE/dist"
+            find /usr -name "*.pkg" -exec cp {} "$WORKSPACE/dist/" \;
+            ls -lh "$WORKSPACE/dist/"
+
+            if [ -z "$(ls -A "$WORKSPACE/dist/")" ]; then
               echo "ОШИБКА: Не найдено ни одного .pkg файла!"
               exit 1
             fi
